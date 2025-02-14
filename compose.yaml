@@ -1,0 +1,44 @@
+services:
+  twochi-bot:
+    build:
+      context: .
+      target: test
+    command: ["gleam", "run"]
+    container_name: 2chi-bot
+    depends_on:
+      - bot-api
+    environment:
+      BOT_MAINTAINERS: "@Sugui@owo.cafe @MeDueleLaTeta@owo.cafe"
+      BACKEND_URL: "http://bot-api:8080"
+      INSTANCE_URL: "https://social.siesta.cat"
+      MAX_RETRIES: 5
+      OUT_OF_IMAGES_MESSAGE: "me quedé sin chicas"
+      INSTANCE_BIO: "Bot that posts images of sleeping girls every 6 hours."
+    env_file:
+      - .env
+
+  mongodb:
+    image: mongo:bionic
+    container_name: mongodb-2chi-bot
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: bot
+
+  bot-api:
+    image: ghcr.io/siesta-cat/2chi-api:v1.0.1
+    container_name: 2chi-api-2chi-bot
+    restart: on-failure
+    stop_signal: sigkill
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongodb
+    environment:
+      PORT: 8080
+      DB_HOST: "mongodb"
+      DB_NAME: "bot"
+      DB_USER: "root"
+      DB_PASS: "password"
