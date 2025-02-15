@@ -46,7 +46,7 @@ pub fn update_bio(
     request.set_header(req, "Authorization", "Bearer " <> instance_token)
     |> request.set_header("content-type", "application/json")
     |> request.set_body(json.to_string(json))
-    |> request.set_method(http.Post)
+    |> request.set_method(http.Patch)
 
   use resp <- result.try(
     httpc.send(req) |> result.replace_error("Failed to make request"),
