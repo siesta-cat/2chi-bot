@@ -8,13 +8,14 @@ import gleam/result
 import images
 
 pub fn update_bio(
-  url instance_url: String,
+  backend_url backend_url: String,
+  instance_url instance_url: String,
   token instance_token: String,
   bio instance_bio: String,
 ) -> Result(String, String) {
   use req <- result.try(
-    request.to(instance_url <> "/images?status=available")
-    |> result.replace_error("Failed to parse url '" <> instance_url <> "'"),
+    request.to(backend_url <> "/images?status=available")
+    |> result.replace_error("Failed to parse url '" <> backend_url <> "'"),
   )
 
   let req = request.set_method(req, http.Get)
@@ -25,7 +26,7 @@ pub fn update_bio(
 
   use images <- result.try(
     json.parse(resp.body, images.images_decoder())
-    |> result.replace_error("Failed to parse post"),
+    |> result.replace_error("Failed to parse images: " <> resp.body),
   )
 
   let new_bio =

@@ -66,7 +66,7 @@ fn run(config: app.Config, token: String) -> Result(Nil, String) {
 
   use bio <- result.try(
     backoff.retry(max_retries, fn() {
-      bio.update_bio(instance_url, token, config.instance_bio)
+      bio.update_bio(backend_url, instance_url, token, config.instance_bio)
     }),
   )
   io.println("Updated bio contents, new content: " <> bio)
