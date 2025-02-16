@@ -5,7 +5,6 @@ import config
 import gleam/io
 import gleam/option
 import gleam/result
-import image/image
 import image/status as image_status
 import images
 import mastodon/media
@@ -21,7 +20,25 @@ pub fn main() {
     }
     option.Some(token) -> {
       case run(config, token) {
-        Error(err) -> io.println_error("Error: " <> err)
+        Error(err) -> {
+          io.println_error("Error: " <> err)
+          let error_post_body = config.maintainers <> " " <> err
+          case
+            backoff.retry(config.max_retries, fn() {
+              status.post(
+                config.instance_url,
+                token,
+                error_post_body,
+                False,
+                visibility.Direct,
+                [],
+              )
+            })
+          {
+            Error(err) -> io.println_error("Error: " <> err)
+            Ok(_) -> Nil
+          }
+        }
         Ok(_) -> Nil
       }
     }
@@ -32,17 +49,12 @@ fn run(config: app.Config, token: String) -> Result(Nil, String) {
   let max_retries = config.max_retries
   let backend_url = config.backend_url
   let instance_url = config.instance_url
+  let out_of_images = config.out_of_images_message
 
   use image <- result.try(
     backoff.retry(max_retries, fn() { images.get_next_url(backend_url) }),
   )
-  use image <- result.try(next_image(
-    image:,
-    instance_url:,
-    token:,
-    error_message: config.maintainers <> " " <> config.out_of_images_message,
-    max_retries:,
-  ))
+  use image <- result.try(option.to_result(image, out_of_images))
   io.println("Got new image to post, url: " <> image.url)
 
   use status <- result.try(
@@ -72,38 +84,6 @@ fn run(config: app.Config, token: String) -> Result(Nil, String) {
   io.println("Updated bio contents, new content: " <> bio)
 
   Ok(io.println("DONE!"))
-}
-
-fn next_image(
-  image image: option.Option(image.Image),
-  instance_url instance_url: String,
-  token token: String,
-  error_message error_message: String,
-  max_retries max_retries: Int,
-) -> Result(image.Image, String) {
-  case image {
-    option.None -> {
-      let error_msg =
-        backoff.retry(max_retries, fn() {
-          status.post(
-            instance_url,
-            token,
-            error_message,
-            False,
-            visibility.Direct,
-            [],
-          )
-        })
-
-      case error_msg {
-        Ok(_) -> Error("Out of images")
-        Error(err) -> Error(err)
-      }
-    }
-    option.Some(image) -> {
-      Ok(image)
-    }
-  }
 }
 
 pub fn post_image(
