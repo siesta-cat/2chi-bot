@@ -38,6 +38,7 @@ pub fn main() {
             Error(err) -> io.println_error("Error: " <> err)
             Ok(_) -> Nil
           }
+          panic as err
         }
         Ok(_) -> Nil
       }
