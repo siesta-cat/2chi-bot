@@ -1,4 +1,3 @@
-import forms/multipart
 import gleam/bit_array
 import gleam/dynamic/decode
 import gleam/http
@@ -6,6 +5,8 @@ import gleam/http/request
 import gleam/httpc
 import gleam/json
 import gleam/result
+import multipart_form
+import multipart_form/field
 
 pub fn upload(
   instance_url: String,
@@ -13,14 +14,13 @@ pub fn upload(
   image: BitArray,
   alt: String,
 ) -> Result(String, String) {
-  let form =
-    multipart.MultipartForm(
-      elements: [
-        #("description", multipart.String(alt)),
-        #("file", multipart.File(content: image, name: "image.png")),
-      ],
-      boundary: "12345",
-    )
+  let form = [
+    #("description", field.String(alt)),
+    #(
+      "file",
+      field.File(name: "image.png", content_type: "image/png", content: image),
+    ),
+  ]
 
   use req <- result.try(
     request.to(instance_url <> "/api/v2/media")
@@ -29,11 +29,7 @@ pub fn upload(
 
   let req =
     request.set_header(req, "Authorization", "Bearer " <> instance_token)
-    |> request.set_header(
-      "Content-Type",
-      "multipart/form-data; boundary=" <> form.boundary,
-    )
-    |> request.set_body(multipart.to_bit_array(form))
+    |> multipart_form.to_request(form)
     |> request.set_method(http.Post)
 
   use resp <- result.try(
