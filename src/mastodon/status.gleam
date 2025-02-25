@@ -40,11 +40,14 @@ pub fn get(
     |> request.set_method(http.Get)
 
   use resp <- result.try(
-    httpc.send(req) |> result.replace_error("Failed to make request"),
+    httpc.send(req)
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   json.parse(resp.body, decode_post())
-  |> result.replace_error("Failed to parse post")
+  |> result.replace_error("Failed to parse images: " <> resp.body)
 }
 
 pub fn delete(
@@ -62,11 +65,14 @@ pub fn delete(
     |> request.set_method(http.Delete)
 
   use resp <- result.try(
-    httpc.send(req) |> result.replace_error("Failed to make request"),
+    httpc.send(req)
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   json.parse(resp.body, decode_post())
-  |> result.replace_error("Failed to parse post")
+  |> result.replace_error("Failed to parse images: " <> resp.body)
 }
 
 pub fn post(
@@ -101,9 +107,11 @@ pub fn post(
 
   use resp <- result.try(
     httpc.send(req)
-    |> result.replace_error("Failed to make request"),
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   json.parse(resp.body, decode_post())
-  |> result.replace_error("Failed to parse post")
+  |> result.replace_error("Failed to parse images: " <> resp.body)
 }

@@ -6,6 +6,7 @@ import gleam/httpc
 import gleam/list
 import gleam/option
 import gleam/result
+import gleam/string
 import gleeunit/should
 import mastodon/status
 import mastodon/visibility
@@ -36,7 +37,10 @@ pub fn post_image_works_test() {
     |> request.set_method(http.Get)
 
   let assert Ok(resp) =
-    httpc.send_bits(req) |> result.replace_error("Failed to make request")
+    httpc.send_bits(req)
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    })
 
   should.be_true(bit_array.byte_size(resp.body) > 0)
 }

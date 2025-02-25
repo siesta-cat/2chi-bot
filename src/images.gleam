@@ -6,6 +6,7 @@ import gleam/json
 import gleam/list
 import gleam/option
 import gleam/result
+import gleam/string
 import image/image
 import image/status
 
@@ -25,7 +26,10 @@ pub fn fetch_url(url: String) -> Result(BitArray, String) {
     |> request.set_method(http.Get)
 
   use resp <- result.try(
-    httpc.send_bits(req) |> result.replace_error("Failed to make request"),
+    httpc.send_bits(req)
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   Ok(resp.body)
@@ -51,12 +55,14 @@ pub fn change_status(
 
   use resp <- result.try(
     httpc.send(req)
-    |> result.replace_error("Failed to make request"),
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   case resp.status {
     204 -> Ok(Nil)
-    _ -> Error("Failed to update status")
+    _ -> Error("Failed to update status, response: " <> string.inspect(resp))
   }
 }
 
@@ -72,12 +78,14 @@ pub fn get_next_url(
 
   use resp <- result.try(
     httpc.send(req)
-    |> result.replace_error("Failed to make request"),
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   use images <- result.try(
     json.parse(resp.body, images_decoder())
-    |> result.replace_error("Failed to parse post"),
+    |> result.replace_error("Failed to parse images: " <> resp.body),
   )
 
   Ok(list.first(images) |> option.from_result)
