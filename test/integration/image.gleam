@@ -7,6 +7,7 @@ import gleam/httpc
 import gleam/json
 import gleam/option
 import gleam/result
+import gleam/string
 import gleeunit/should
 import image/image
 import image/status
@@ -42,11 +43,13 @@ pub fn get_next_url_works_test() {
 
   let assert Ok(resp) =
     httpc.send(req)
-    |> result.replace_error("Failed to make request")
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    })
 
   let assert Ok(image) =
     json.parse(resp.body, image.decoder())
-    |> result.replace_error("Failed to parse post")
+    |> result.replace_error("Failed to parse images: " <> resp.body)
 
   image.url |> should.equal(initial_image.url)
   image.tags |> should.equal(initial_image.tags)
@@ -80,9 +83,11 @@ fn insert_image(config: app.Config, url: String) -> Result(image.Image, String) 
 
   use resp <- result.try(
     httpc.send(req)
-    |> result.replace_error("Failed to make request"),
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   json.parse(resp.body, image.decoder())
-  |> result.replace_error("Failed to parse post")
+  |> result.replace_error("Failed to parse images: " <> resp.body)
 }

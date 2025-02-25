@@ -5,6 +5,7 @@ import gleam/http/request
 import gleam/httpc
 import gleam/json
 import gleam/result
+import gleam/string
 import multipart_form
 import multipart_form/field
 
@@ -34,7 +35,9 @@ pub fn upload(
 
   use resp <- result.try(
     httpc.send_bits(req)
-    |> result.replace_error("Failed to make request"),
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   use body <- result.try(
@@ -43,7 +46,9 @@ pub fn upload(
   )
 
   json.parse(body, decode())
-  |> result.replace_error("Failed to parse image upload")
+  |> result.map_error(fn(err) {
+    "Failed to parse image upload: " <> string.inspect(err)
+  })
 }
 
 fn decode() {

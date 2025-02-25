@@ -5,6 +5,7 @@ import gleam/int
 import gleam/json
 import gleam/list
 import gleam/result
+import gleam/string
 import images
 
 pub fn update_bio(
@@ -21,7 +22,10 @@ pub fn update_bio(
   let req = request.set_method(req, http.Get)
 
   use resp <- result.try(
-    httpc.send(req) |> result.replace_error("Failed to make request"),
+    httpc.send(req)
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   use images <- result.try(
@@ -49,11 +53,14 @@ pub fn update_bio(
     |> request.set_method(http.Patch)
 
   use resp <- result.try(
-    httpc.send(req) |> result.replace_error("Failed to make request"),
+    httpc.send(req)
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    }),
   )
 
   case resp.status {
     200 -> Ok(new_bio)
-    _ -> Error("Failed to update bio")
+    _ -> Error("Failed to update bio, response: " <> string.inspect(resp))
   }
 }

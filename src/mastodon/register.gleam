@@ -44,7 +44,10 @@ pub fn register(instance: String) -> Nil {
     |> request.set_method(http.Post)
 
   let assert Ok(response) =
-    httpc.send(req) |> result.replace_error("Failed to make request")
+    httpc.send(req)
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    })
 
   let assert Ok(#(client_id, client_secret)) =
     json.parse(response.body, decode_app_register())
@@ -83,7 +86,9 @@ pub fn register(instance: String) -> Nil {
 
   let assert Ok(response) =
     httpc.send(req)
-    |> result.replace_error("Failed to make request")
+    |> result.map_error(fn(err) {
+      "Failed to make request: " <> string.inspect(err)
+    })
 
   let assert Ok(token) = json.parse(response.body, decode_token())
 
