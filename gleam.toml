@@ -19,7 +19,7 @@ gleam_httpc = "== 4.1.0"
 gleam_http = "== 4.0.0"
 gleam_erlang = "== 0.34.0"
 multipart_form = "== 1.0.0"
-envoy = ">= 1.0.2 and < 2.0.0"
+envoy = "== 1.0.2"
 
 [dev-dependencies]
 gleeunit = "== 1.3.0"
