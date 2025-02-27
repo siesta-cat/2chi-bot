@@ -1,28 +1,23 @@
 import app
+import envoy
+import gleam/int
 import gleam/option
 import gleam/result
-import glenvy/env
 
 pub fn load_from_env() -> Result(app.Config, String) {
   let instance_bio =
-    result.unwrap(
-      read_env_var("INSTANCE_BIO", env.get_string),
-      "A bot that post images",
-    )
+    result.unwrap(read_env_var("INSTANCE_BIO", Ok(_)), "A bot that post images")
   let out_of_images_message =
     result.unwrap(
-      read_env_var("OUT_OF_IMAGES_MESSAGE", env.get_string),
+      read_env_var("OUT_OF_IMAGES_MESSAGE", Ok(_)),
       "I am out of images",
     )
-  let max_retries = result.unwrap(read_env_var("MAX_RETRIES", env.get_int), 5)
-  let instance_token =
-    option.from_result(
-      read_env_var("INSTANCE_TOKEN", fn(env) { env.get_string(env) }),
-    )
+  let max_retries = result.unwrap(read_env_var("MAX_RETRIES", int.parse), 5)
+  let instance_token = option.from_result(read_env_var("INSTANCE_TOKEN", Ok(_)))
 
-  use instance_url <- result.try(read_env_var("INSTANCE_URL", env.get_string))
-  use backend_url <- result.try(read_env_var("BACKEND_URL", env.get_string))
-  use maintainers <- result.try(read_env_var("BOT_MAINTAINERS", env.get_string))
+  use instance_url <- result.try(read_env_var("INSTANCE_URL", Ok(_)))
+  use backend_url <- result.try(read_env_var("BACKEND_URL", Ok(_)))
+  use maintainers <- result.try(read_env_var("BOT_MAINTAINERS", Ok(_)))
 
   Ok(app.Config(
     instance_url:,
@@ -37,8 +32,13 @@ pub fn load_from_env() -> Result(app.Config, String) {
 
 fn read_env_var(
   name: String,
-  read_fun: fn(String) -> Result(a, env.Error),
+  read_fun: fn(String) -> Result(a, error),
 ) -> Result(a, String) {
-  read_fun(name)
-  |> result.replace_error("Incorrect value for env var '" <> name <> "'")
+  envoy.get(name)
+  |> result.replace_error("Env var '" <> name <> "' not found")
+  |> result.map(fn(value) {
+    read_fun(value)
+    |> result.replace_error("Incorrect value for env var '" <> name <> "'")
+  })
+  |> result.flatten()
 }
