@@ -28,7 +28,7 @@ services:
       MONGO_INITDB_DATABASE: bot
 
   bot-api:
-    image: ghcr.io/siesta-cat/2chi-api:v1.2.0
+    image: ghcr.io/siesta-cat/2chi-api:v1.2.1
     container_name: 2chi-api-2chi-bot
     restart: on-failure
     stop_signal: sigkill
