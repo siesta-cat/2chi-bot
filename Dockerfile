@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM ghcr.io/gleam-lang/gleam:v1.8.1-erlang-slim AS deps
+FROM --platform=$BUILDPLATFORM ghcr.io/gleam-lang/gleam:v1.9.0-erlang-slim AS deps
 WORKDIR /app
 
 COPY gleam.toml manifest.toml ./
@@ -14,7 +14,7 @@ RUN gleam build
 FROM deps AS build
 RUN gleam export erlang-shipment
 
-FROM ghcr.io/gleam-lang/gleam:v1.8.1-erlang-slim AS final
+FROM ghcr.io/gleam-lang/gleam:v1.9.0-erlang-slim AS final
 WORKDIR /app
 RUN apt update && apt install ca-certificates -y
 COPY --from=build /app/build/erlang-shipment .
