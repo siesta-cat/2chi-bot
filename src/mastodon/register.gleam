@@ -23,7 +23,7 @@ const redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
 
 const app_name = "image_bot"
 
-const scopes = "read write"
+const scopes = "read write admin"
 
 pub fn register(instance: String) -> Nil {
   let json =
@@ -59,7 +59,7 @@ pub fn register(instance: String) -> Nil {
     <> client_id
     <> "&redirect_uri="
     <> redirect_uri
-    <> "&response_type=code&scope=read%20write",
+    <> "&response_type=code&scope=read%20write%20admin",
   )
   let assert Ok(token) =
     erlang.get_line("Please provide me with the token: ")
