@@ -13,7 +13,7 @@ version = "1.0.0"
 # https://gleam.run/writing-gleam/gleam-toml/.
 
 [dependencies]
-gleam_stdlib = "== 0.59.0"
+gleam_stdlib = "== 0.60.0"
 gleam_json = "== 3.0.0"
 gleam_httpc = "== 4.1.0"
 gleam_http = "== 4.0.0"
